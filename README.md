@@ -64,97 +64,96 @@ PHP ini
 ```ini
 [database]
 dbUsername = "root";
-dbPassword = "password123";
-dbName = "lap";
+dbPassword = "";
+dbName = "";
 serverName = "localhost";
 port = 3306;
 ```
 
-PHP mysql Verbindung aufbau
+Datenbankklasse
 ``` php
-$ini = parse_ini_file(__DIR__ . '/php.ini');
-$GLOBALS['connectionString'] = "mysql:host=" . $ini['serverName'] . ";port=" . $ini['port'] . ";dbname=" . $ini['dbName'] ."";
-$GLOBALS['dbUsername'] = $ini['dbUsername'];
-$GLOBALS['dbPassword'] = $ini['dbPassword'];
-```
+class Database {
+    public $DbName;
+    public $Port;
+    public $Host;
+    public $Username;
+    public $Password;
+    private $iniFilePath = __DIR__ . "/php.ini";
 
-Prepared Statements 
-```php
-$query = "insert into table (col1, col2) values (?,?);";
-$response = Operate($query, [$val1, $val2]);
-
-//Funktionsdefinierung
-function Operate($query, $parameterArray){
-    try{
-    $connection = new PDO($GLOBALS['connectionString'], $GLOBALS['dbUsername'], $GLOBALS['dbPassword']);
-    $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $connection->beginTransaction();
-    $insertStatement = $connection->prepare($query);
-    $insertStatement->execute($parameterArray);
-
-    $connection->commit();
-    }
-    catch(PDOException $e){
-        $connection->rollBack();
-        return $e->getMessage();
-    } finally {
-        $connection = null;
+    function __construct(){
+        $data = parse_ini_file($this -> iniFilePath);
+        $this -> DbName = $data['dbName'];
+        $this -> Port = $data['port'];
+        $this -> Host = $data['server'];
+        $this -> Username = $data['username'];
+        $this -> Password = $data['password'];
     }
 
-    return "Success";
-}
-```
+    function __destruct(){;}
 
-## PHP Datenbank zugriff
-**Auslesen** _gibt immer ein Array zurück weil beim fetchAll(PDO::FETCHASSOC) mitgegeben wird._
+    //Zum ausführen von DML
+    function Operate($query, $parameterArray){
+        $connection = new PDO("mysql:host$this->Host;port=$this->Port;dbname=$this->DbName", $this->Username, $this->Password);
 
-**Auslesen mit Parameter**
-```php
-$query = "select * from table where col1 = ?";
-$result = Query($query, [$val]);
+        try{
+            $connection -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $connection -> beginTransaction();
 
-function Query($query, $parameterArray){
-    $result = [];
+            $statement = $connection -> prepare($query);
+            $statement -> execute($parameterArray);
+        
+            $connection-> commit();
+        }catch(PDOException $e){
+            $connection -> rollBack();
+            return $e -> getMessage();
+        }
+        finally{
+            $connection = null;
+        }
 
-    try{
-        $connection = new PDO($GLOBALS['connectionString'], $GLOBALS['dbUsername'], $GLOBALS['dbPassword']);
-        $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $selectStatement = $connection->prepare($query);
-        $selectStatement->execute($parameterArray);
-        $result = $selectStatement->fetchAll(PDO::FETCH_ASSOC); //gibt Array zurück
-    }
-    catch(PDOException $e){
-        return $e->getMessage();
-    } finally {
-        $connection = null;
+        return "Success";
     }
 
-    return $result[0];
-}
-```
+    //Zum ausführen von Selects ohne Parameter und zum ausführen von Like Selects
+    function QueryAll($query){
+        $c = new PDO("mysql:host$this->Host;port=$this->Port;dbname=$this->DbName", $this->Username, $this->Password);
+        $result = [];
+        
+        try{
+            $c -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-**Auslesen ohne Paramter**
-Like suche muss auch so gemacht werden. 
+            $result = $c->query($query)->fetchAll(PDO::FETCH_ASSOC);
+            
+        }catch(PDOException $e){
+            return $e -> getMessage();
+        }finally{
+            $c = null;
+        }
 
-```php
-$query = "select * from table";
-$result = QueryAll($query);
-
-function QueryAll($query){
-    $result = [];
-
-    try{
-        $connection = new PDO($GLOBALS['connectionString'], $GLOBALS['dbUsername'], $GLOBALS['dbPassword']);
-        $connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        $result = $connection->query($query)->fetchAll(PDO::FETCH_ASSOC); //gibt Array zurück
-    }
-    catch(PDOException $e){
-        return $e->getMessage();
-    } finally {
-        $connection = null;
+        return $result;
     }
 
-    return $result;
+    //ZUm ausführen von Selects mit Parameter
+    function QueryWithParams($query, $parameterArray){
+        $c = new PDO("mysql:host=$this->Host;port=$this->Port;dbname=$this->DbName", $this->Username, $this->Password);
+        $result = [];
+        
+        try{
+            $c-> setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
+
+
+            $statement = $c->prepare($query);
+            $statement ->execute($parameterArray);
+            $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+            
+        }catch(PDOException $e){
+            return $e->getMessage();
+        }finally{
+            $c = null;
+        }
+
+        return $result;
+    }
 }
 ```
 
