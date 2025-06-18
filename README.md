@@ -3,6 +3,7 @@
 ## Getting Started
 ### **WICHTIG** --> damit man unter _http://localhost:80_ die Anwendung erreicht, muss eine _index.php_ existieren. Diese ist die LandingPage! Diese Datei darf in keinen Ordner rein verschoben werden!
 XAMPP -> https://www.apachefriends.org/de/download.html
+MySql Workbench -> https://dev.mysql.com/downloads/workbench/
 VSCode -> https://code.visualstudio.com/download 
 Extention -> https://marketplace.visualstudio.com/items?itemName=cweijan.vscode-mysql-client2 
 
