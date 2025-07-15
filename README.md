@@ -8,7 +8,10 @@
 * Extention -> https://marketplace.visualstudio.com/items?itemName=cweijan.vscode-mysql-client2 
 
 HTML
-Bei Rückgabe von DB immer **htmlspecialchars()** verwenden
+Bei Rückgabe von DB immer **htmlspecialchars(string, ENT_QUOTES, 'UTF-8')** verwenden, um "bösen Code" vorzubeugen
+ENT_QUOTES --> Konvertiert " und ' in html Entities
+" --> &quot
+' --> &apos
 ``` html
 <!DOCTYPE html>
 <html lang="de">
@@ -63,10 +66,10 @@ Bei Rückgabe von DB immer **htmlspecialchars()** verwenden
 PHP ini
 ```ini
 [database]
-dbUsername = "root";
-dbPassword = "";
+username = "root";
+password = "";
 dbName = "";
-serverName = "localhost";
+server = "localhost";
 port = 3306;
 ```
 
@@ -78,8 +81,9 @@ class Database {
     public $Host;
     public $Username;
     public $Password;
-    private $iniFilePath = __DIR__ . "/php.ini";
+    private $iniFilePath = __DIR__ . "/php.ini"; //Damit außerhalb der Klasse der Ablageort der Konfig unbekannt bleibt
 
+    //Zum Initialisieren des DB Objektes
     function __construct(){
         $data = parse_ini_file($this -> iniFilePath);
         $this -> DbName = $data['dbName'];
@@ -89,22 +93,22 @@ class Database {
         $this -> Password = $data['password'];
     }
 
-    function __destruct(){;}
+    function __destruct(){;} //Wird automatisch aufgerufen am Ende vom Skript
 
-    //Zum ausführen von DML
+    //Zum ausführen von DML (insert, update, delete)
     function Operate($query, $parameterArray){
         $connection = new PDO("mysql:host$this->Host;port=$this->Port;dbname=$this->DbName", $this->Username, $this->Password);
+        $connection -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         try{
-            $connection -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $connection -> beginTransaction();
+            $connection -> beginTransaction(); //Stoppt Autocommit -> macht Änderungen im Fall von Fehler wieder rückgängig
 
             $statement = $connection -> prepare($query);
             $statement -> execute($parameterArray);
         
-            $connection-> commit();
+            $connection-> commit(); //Wenn bis hier kein Fehler war, dann Änderungen bestätigen
         }catch(PDOException $e){
-            $connection -> rollBack();
+            $connection -> rollBack(); //Wenn oben Fehler war, Änderungen rückgängig
             return $e -> getMessage();
         }
         finally{
@@ -117,13 +121,11 @@ class Database {
     //Zum ausführen von Selects ohne Parameter und zum ausführen von Like Selects
     function QueryAll($query){
         $c = new PDO("mysql:host$this->Host;port=$this->Port;dbname=$this->DbName", $this->Username, $this->Password);
+        $c -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $result = [];
         
         try{
-            $c -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-            $result = $c->query($query)->fetchAll(PDO::FETCH_ASSOC);
-            
+            $result = $c->query($query)->fetchAll(PDO::FETCH_ASSOC); //Daten als Array
         }catch(PDOException $e){
             return $e -> getMessage();
         }finally{
@@ -133,18 +135,16 @@ class Database {
         return $result;
     }
 
-    //ZUm ausführen von Selects mit Parameter
+    //Zum ausführen von Selects mit Parameter
     function QueryWithParams($query, $parameterArray){
         $c = new PDO("mysql:host=$this->Host;port=$this->Port;dbname=$this->DbName", $this->Username, $this->Password);
+        $c-> setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
         $result = [];
         
         try{
-            $c-> setAttribute(PDO::ATTR_ERRMODE,PDO::ERRMODE_EXCEPTION);
-
-
             $statement = $c->prepare($query);
             $statement ->execute($parameterArray);
-            $result = $statement->fetchAll(PDO::FETCH_ASSOC);
+            $result = $statement->fetchAll(PDO::FETCH_ASSOC); //Daten als Array
             
         }catch(PDOException $e){
             return $e->getMessage();
@@ -162,7 +162,7 @@ class Database {
 '/' ist wichtig zu setzten, damit das von jeder Seite aus zugreifbar ist.
 ```php
 $result = QueryData();
-setcookie('data', json_encode($result), time()+3, '/');
+setcookie('data', json_encode($result), time()+3, '/'); //setcookie(cookieName, wert, Zeit auf 3 Sekunden, Global Verfügbar machen)
 ```
 **Frontend**
 ```php
@@ -170,7 +170,7 @@ if(isset($_COOKIE['cookieName'])){
     $data = json_decode($_COOKIE['cookieName']);
 }
 
-setcookie('cookieName',false); //kann man muss man aber nicht, wenn die Zeit richtig eingestellt ist
+setcookie('cookieName',false); //Cookie "löschen" --> kann man muss man aber nicht, wenn die Zeit richtig eingestellt ist
 ```
 
 ## User Rückmeldung geben
@@ -266,15 +266,14 @@ OnInput - reagiert auf die Eingaben im Inputfeld ohne auf Enter drücken zu müs
             let fd = new FormData();
             fd.set('value', input);
 
+            //Zum Server telefoniereren
             const resp = await fetch(url,{
                 method: 'POST',
                 body: fd 
                 })
                 .then((response) => response.text())
                 .then((text) => {
-                    console.log(document.getElementById('myTable').innerHTML);
-                    document.getElementById('myTable').innerHTML = text;
-                    console.log(document.getElementById('myTable').innerHTML);
+                    document.getElementById('myTable').innerHTML = text; //Wert in html setzen was man von Server bekommen hat
                 });
         }
 </script>
@@ -307,12 +306,6 @@ include_once 'Car.php';
 $car = new Car();
 $car -> setProperties($value1, $value2);
 ```
-
-### PHP Tricks
-Um immer aktuelles Verzeichnis zu bekommen 
-```php
- __DIR__ 
- ```
 
  ## Testprotokoll 
  Testfall_ID  
