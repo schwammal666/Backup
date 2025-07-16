@@ -7,18 +7,32 @@
 * VSCode -> https://code.visualstudio.com/download 
 * Extention -> https://marketplace.visualstudio.com/items?itemName=cweijan.vscode-mysql-client2 
 
-HTML
+## HTML
 Bei Rückgabe von DB immer **htmlspecialchars(string, ENT_QUOTES, 'UTF-8')** verwenden, um "bösen Code" vorzubeugen
 ENT_QUOTES --> Konvertiert " und ' in html Entities
 " --> &quot
 ' --> &apos
 
- ## Testprotokoll 
- Testfall_ID  
- Testbeschreibung  
- Annahmen und Vorraussetzugen --> z.B. was gegeben sein muss, damit man das ausführen kann  
- Testdaten --> beschreiben welche Daten benutzt wurden  
- Schritte aus sicht von Endbenutzers z.B.:   
+## Dokumentation
+**Einleitung**
+Dieses Schreiben dient zur Dokumentation der Arbeitsschritte der Übung {ÜbungsName} der LAP für Applikationsentwickler. Es werden die notwendigen Arbeitsmittel, aufgeteilt in Hardware und Software benannt und die einzelnen Schritte näher erläutert. 
+
+**Benötigte Werkzeuge**
+Aufteilung in HW und SW
+
+**Arbeitsschritte** 
+z.B.: 
+ER-Diagramm 
+Relationen 
+SQL
+Website
+
+## Testprotokoll 
+Testfall_ID  
+Testbeschreibung  
+Annahmen und Vorraussetzugen --> z.B. was gegeben sein muss, damit man das ausführen kann  
+Testdaten --> beschreiben welche Daten benutzt wurden  
+Schritte aus sicht von Endbenutzers z.B.:   
     1. Öffnen von blabla  
     2. Eingeben von blalba  
     3. Klicken auf blabla  
